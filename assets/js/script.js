@@ -230,7 +230,7 @@ $(document).ready(function () {
       gameTimeLoop = setInterval(updateGameTime, 1000);
       updateScoreLoop = setInterval(() => updateScore(1), scoreInterval);
       moveInterval = setInterval(gameLoop, roadSpeed / 2);
-      spawnInterval = setInterval(spawnRandomCars, 3000);
+      spawnInterval = setInterval(spawnRandomCars, 30);
 
       gameDurationLoop = setTimeout(() => {
         clearInterval(gameTimeLoop);
