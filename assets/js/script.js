@@ -656,6 +656,10 @@ $(document).ready(function () {
       $("#next-level-btn").removeClass("d-none");
     }
 
+    if(unlockedLevels > level) {
+      $("#next-level-btn").removeClass("d-none");
+    }
+
     if (level === 4) {
       $("#next-level-btn").addClass("d-none");
     }
