@@ -13,22 +13,25 @@ $(document).ready(function () {
   const otherCar1 = $("#car-2");
   const otherCar2 = $("#car-3");
 
-  let gameWidth = $(window).width();
-  let gameHeight = $(window).height();
-  let roadWidth = 490;
+  const gameWidth = $(window).width();
+  const gameHeight = $(window).height();
+  const roadWidth = 490;
+  const roadLeft = (gameWidth - roadWidth) / 2;
+  
   let level = 1;
   let unlockedLevels = 1;
   let score = 0;
   let gameTime = 0;
-  let carSpeed = 1;
   let gameRunning = false;
 
   let highestScore = [0, 0, 0, 0];
 
   let roadSpeed;
+  let carSpeed;
   let scoreInterval;
   let gameDuration;
   let stars;
+  let minCarSpacing;
 
   let moveRoadLoop;
   let gameTimeLoop;
@@ -72,6 +75,7 @@ $(document).ready(function () {
   }, 6000);
 
   initializeLevels();
+  initializeCarPositions();
 
   // ========================================== Hover ==========================================
 
@@ -229,7 +233,14 @@ $(document).ready(function () {
       spawnInterval = setInterval(spawnRandomCars, 3000);
 
       gameDurationLoop = setTimeout(() => {
+        clearInterval(gameTimeLoop);
+        clearInterval(updateScoreLoop);
+        clearInterval(moveRoadLoop);
+        clearInterval(moveInterval);
+        clearInterval(spawnInterval);
         showGameOverBoard();
+        $("#pause-button-container").addClass("d-none");
+        $("#repeat-button-container").addClass("d-none");
       }, gameDuration - gameTime * 1000);
       gameRunning = true;
       $("#pause-btn img").attr("src", "/assets/images/UI/Pause/Default@2x.png");
@@ -240,7 +251,6 @@ $(document).ready(function () {
     clearInterval(moveRoadLoop);
     clearInterval(gameTimeLoop);
     clearInterval(updateScoreLoop);
-    clearInterval(gameDurationLoop);
     clearInterval(moveInterval);
     clearInterval(spawnInterval);
     gameRunning = false;
@@ -250,6 +260,7 @@ $(document).ready(function () {
   $("#confirmPlayAgain").click(function () {
     $("#pause-btn img").attr("src", "/assets/images/UI/Pause/Default@2x.png");
     gameRunning = true;
+    clearInterval(gameDurationLoop);
     resetGame();
     playGame();
   });
@@ -264,6 +275,7 @@ $(document).ready(function () {
 
   playAgainBtn.click(function () {
     gameRunning = true;
+    clearInterval(gameDurationLoop);
     resetGame();
     playGame();
   });
@@ -350,6 +362,25 @@ $(document).ready(function () {
 
   // ========================================== Functions ==========================================
 
+  function initializeCarPositions() {
+    userCar.css({
+      left: gameWidth / 2 - userCar.width() / 2,
+      top: gameHeight - userCar.height() - 10
+    });
+
+    // Position first car at the top
+    otherCar1.css({
+      left: roadLeft + Math.random() * (roadWidth - otherCar1.width()),
+      top: -otherCar1.height()
+    });
+
+    // Position second car with minimum spacing
+    otherCar2.css({
+      left: roadLeft + Math.random() * (roadWidth - otherCar2.width()),
+      top: -otherCar2.height() - minCarSpacing
+    });
+  }
+
   function initializeLevels() {
     $("#level-1-btn").addClass("active");
 
@@ -434,30 +465,40 @@ $(document).ready(function () {
         break;
     }
   }
-
+  
   function playGame() {
     switch (level) {
       case 1:
-        roadSpeed = 50;
+        roadSpeed = 60;
+        carSpeed = 5;
+        minCarSpacing = 500;
         scoreInterval = 1000;
-        gameDuration = 10000; //60000
+        gameDuration = 30000;
         break;
       case 2:
-        roadSpeed = 30;
+        roadSpeed = 50;
+        carSpeed = 6;
+        minCarSpacing = 450;
         scoreInterval = 1500;
-        gameDuration = 15000; //90000
+        gameDuration = 60000;
         break;
       case 3:
-        roadSpeed = 20;
+        roadSpeed = 40;
+        carSpeed = 7;
+        minCarSpacing = 400;
         scoreInterval = 2000;
-        gameDuration = 20000; //120000
+        gameDuration = 90000;
         break;
       case 4:
-        roadSpeed = 10;
+        roadSpeed = 30;
+        carSpeed = 8;
+        minCarSpacing = 350;
         scoreInterval = 2500;
-        gameDuration = 25000; //150000
+        gameDuration = 120000;
         break;
     }
+
+    initializeCarPositions();
 
     setTimeout(() => {
       $("#countdown").addClass("d-none");
@@ -465,13 +506,20 @@ $(document).ready(function () {
       gameTimeLoop = setInterval(updateGameTime, 1000);
       updateScoreLoop = setInterval(() => updateScore(1), scoreInterval);
       moveInterval = setInterval(gameLoop, roadSpeed / 2);
-      spawnInterval = setInterval(spawnRandomCars, 3000);
+      spawnInterval = setInterval(spawnRandomCars, 30); // Faster updates for smoother movement
       $("#pause-button-container").removeClass("d-none");
       $("#repeat-button-container").removeClass("d-none");
     }, 4000);
 
     gameDurationLoop = setTimeout(() => {
+      clearInterval(gameTimeLoop);
+      clearInterval(updateScoreLoop);
+      clearInterval(moveRoadLoop);
+      clearInterval(moveInterval);
+      clearInterval(spawnInterval);
       showGameOverBoard();
+      $("#pause-button-container").addClass("d-none");
+      $("#repeat-button-container").addClass("d-none");
     }, gameDuration + 5000);
   }
 
@@ -497,8 +545,8 @@ $(document).ready(function () {
   function resetGame() {
     // Center the user car horizontally and place at bottom of screen
     userCar.css({
-      left: gameWidth / 2 - userCar.width(),
-      top: gameHeight - userCar.height() - 50,
+      left: gameWidth / 2 - userCar.width() / 2,
+      top: gameHeight - userCar.height() - 10,
     });
 
     // Reset other cars to top of screen with random horizontal positions
@@ -522,7 +570,6 @@ $(document).ready(function () {
     // Reset game state variables
     score = 0;
     gameTime = 0;
-    gameRunning = false; // Explicitly set game state to not running
 
     // Reset UI elements
     $("#score").text(score);
@@ -542,35 +589,21 @@ $(document).ready(function () {
     $("#next-level-btn").addClass("d-none"); // Hide next level button
   }
 
-  // Road Movement
-  function moveRoad() {
-    $(".road").each(function () {
-      // Get the current top position
-      let currentTop = parseFloat($(this).css("top"));
-      // Calculate the new position
-      let newTop = currentTop + 5; // Move down 10 pixels per frame
-      // Reset the position when the image moves out of view
-      if (newTop >= $(window).height() * 2) {
-        newTop = -$(window).height() + 5; // Reset to just above the viewport
-      }
-      // Apply the new position
-      $(this).css("top", `${newTop}px`);
-    });
-  }
+  // Road Movement  function moveRoad() {
+    function moveRoad() {
+      $(".road").each(function () {
+        let currentTop = parseFloat($(this).css("top"));
+        let newTop = currentTop + 5;
+        
+        if (newTop >= $(window).height() * 2) {
+          newTop = -$(window).height() + 5;
+        }
+        
+        $(this).css("top", `${newTop}px`);
+      });
+    }
 
   function showGameOverBoard() {
-    clearInterval(moveRoadLoop);
-    clearInterval(gameTimeLoop);
-    clearInterval(updateScoreLoop);
-    clearInterval(gameDurationLoop);
-    clearInterval(moveInterval);
-    clearInterval(spawnInterval);
-
-    gameRunning = false;
-
-    $("#pause-button-container").addClass("d-none");
-    $("#repeat-button-container").addClass("d-none");
-
     $("#final-score").text(score); // Display the final score
     $("#highest-score").text(highestScore[level - 1]); // Display the highest score
     $("#current-level").text(level); // Display the current level
@@ -634,82 +667,106 @@ $(document).ready(function () {
 
   // Car Movement Function
   function moveUserCar() {
+    if (gameRunning == false) return;
+
+    const roadWidth = 490; // Specify the road width
+    const roadLeft = (gameWidth - roadWidth) / 2; // Calculate left position of the road
+    const roadRight = roadLeft + roadWidth; // Calculate right position of the road
+
     let currentLeft = parseInt(userCar.css("left"));
     let currentTop = parseInt(userCar.css("top"));
+    let userCarSpeed = 10;
 
-    if (moveLeft && currentLeft > 0) {
-      userCar.css("left", currentLeft - carSpeed);
+    if (moveLeft && currentLeft > roadLeft) {
+      userCar.css("left", currentLeft - userCarSpeed);
     }
-    if (moveRight && currentLeft < gameWidth - userCar.width()) {
-      userCar.css("left", currentLeft + carSpeed);
+    if (moveRight && currentLeft < roadRight - userCar.width()) {
+      userCar.css("left", currentLeft + userCarSpeed);
     }
     if (moveUp && currentTop > 0) {
-      userCar.css("top", currentTop - carSpeed);
+      userCar.css("top", currentTop - userCarSpeed);
     }
     if (moveDown && currentTop < gameHeight - userCar.height()) {
-      userCar.css("top", currentTop + carSpeed);
+      userCar.css("top", currentTop + userCarSpeed);
     }
+
   }
 
-  // Random Car Spawning
-  // function spawnRandomCars() {
-  //   const cars = [otherCar1, otherCar2];
 
-  //   cars.forEach((car) => {
-  //     let currentTop = parseInt(car.css("top"));
-
-  //     // If car is out of view, reset its position
-  //     if (currentTop > gameHeight) {
-  //       // Random vertical start point above the screen
-  //       let randomVerticalStart = -car.height() - Math.random() * gameHeight;
-
-  //       car.css("top", randomVerticalStart);
-  //       car.css("left", Math.random() * (gameWidth - car.width()));
-  //     } else {
-  //       car.css("top", currentTop + roadSpeed);
-  //     }
-  //   });
-  // }
   function spawnRandomCars() {
-    const cars = [otherCar1, otherCar2];
+    if (!gameRunning) return;
 
-    cars.forEach((car) => {
+    [otherCar1, otherCar2].forEach((car, index) => {
       let currentTop = parseInt(car.css("top"));
-
-      // If car is out of view, reset its position and randomize horizontal position
-      if (currentTop > gameHeight) {
+      let newTop = currentTop + carSpeed; // Use carSpeed for movement
+      
+      // If car is off screen, reset position
+      if (newTop > gameHeight) {
+        let newLeft;
+        let newPosition;
         let attempts = 0;
-        let collision, newLeft;
-
+        const otherCar = index === 0 ? otherCar2 : otherCar1;
+        
+        // Try to find a non-overlapping position
         do {
-          // Ensure car stays fully within viewport
-          newLeft = Math.floor(Math.random() * (gameWidth - car.width()));
-          car.css("left", newLeft);
-          car.css("top", -car.height());
-
-          // Check collision with the other car
-          collision = cars.some((otherCar) => {
-            if (otherCar !== car) {
-              return checkCollision(car, otherCar);
-            }
-            return false;
+          newLeft = getRandomCarPosition();
+          newPosition = -car.height() - (Math.random() * minCarSpacing);
+          car.css({
+            left: newLeft,
+            top: newPosition
           });
-
           attempts++;
+        } while (checkCollision(car, otherCar) && attempts < 10);
 
-          // Prevent infinite loop
-          if (attempts > 10) {
-            // Force a position if too many attempts
-            newLeft = Math.floor(gameWidth / 2);
-            car.css("left", newLeft);
-            break;
-          }
-        } while (collision);
+        // If we couldn't find a non-overlapping position, force minimum spacing
+        if (attempts >= 10) {
+          const otherCarTop = parseInt(otherCar.css("top"));
+          newPosition = otherCarTop - minCarSpacing - car.height();
+          car.css("top", newPosition);
+        }
       } else {
-        car.css("top", currentTop + roadSpeed);
+        car.css("top", newTop);
       }
     });
   }
+
+    // Function to move the car smoothly using requestAnimationFrame
+    function moveCarSmoothly(car) {
+      // Get the current top position of the car
+      const currentTop = parseFloat(car.css("top"));
+      const nextTop = currentTop + roadSpeed;
+  
+      // Check if the car is still on screen (below the viewport height)
+      if (nextTop < gameHeight) {
+        // Update the car's position smoothly
+        car.css("top", nextTop); // Update car's vertical position
+  
+        // Request the next frame to keep moving the car
+        requestAnimationFrame(() => moveCarSmoothly(car));
+      } else {
+        // If the car moves off-screen, reset its position for respawning
+        resetCarPosition(car);
+      }
+  }
+  
+    // Function to reset the car position when it moves off-screen
+    function resetCarPosition(car) {
+      // Reset car's position if it has moved off the screen
+      const roadWidth = 490;
+      const roadLeft = (gameWidth - roadWidth) / 2;
+  
+      const carWidth = car.width();
+      const newLeft = roadLeft + Math.random() * (roadWidth - carWidth);
+  
+      // Reset the car off-screen and start moving again
+      car.css({
+        left: newLeft,
+        top: -car.height(), // Reset car position off-screen
+      });
+  
+      // Start moving the car again smoothly
+      moveCarSmoothly(car);
+    }
 
   // Collision Detection
   function checkCollision(car1, car2) {
@@ -722,6 +779,11 @@ $(document).ready(function () {
       rect1.bottom < rect2.top ||
       rect1.top > rect2.bottom
     );
+  }
+
+  function getRandomCarPosition() {
+    const carWidth = otherCar1.width();
+    return roadLeft + Math.random() * (roadWidth - carWidth);
   }
 
   // Game Loop
@@ -737,6 +799,14 @@ $(document).ready(function () {
       checkCollision(userCar, otherCar1) ||
       checkCollision(userCar, otherCar2)
     ) {
+      clearInterval(moveRoadLoop);
+      clearInterval(gameTimeLoop);
+      clearInterval(updateScoreLoop);
+      clearInterval(moveInterval);
+      clearInterval(spawnInterval);
+      gameRunning = false;
+      $("#pause-button-container").addClass("d-none");
+      $("#repeat-button-container").addClass("d-none");
       showGameOverBoard();
     }
   }
