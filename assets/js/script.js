@@ -22,6 +22,7 @@ $(document).ready(function () {
   let unlockedLevels = 1;
   let score = 0;
   let gameTime = 0;
+  let minCarSpacing = 500;
   let gameRunning = false;
 
   let highestScore = [0, 0, 0, 0];
@@ -31,7 +32,6 @@ $(document).ready(function () {
   let scoreInterval;
   let gameDuration;
   let stars;
-  let minCarSpacing;
 
   let moveRoadLoop;
   let gameTimeLoop;
@@ -282,6 +282,8 @@ $(document).ready(function () {
 
   mainMenuBtn.click(function () {
     gameRunning = false;
+    level = 1;
+    clearInterval(gameDurationLoop);
     initializeLevels();
     resetGame();
     $("#speed-shifter-intro").removeClass("d-none");
@@ -471,30 +473,26 @@ $(document).ready(function () {
       case 1:
         roadSpeed = 60;
         carSpeed = 5;
-        minCarSpacing = 500;
         scoreInterval = 1000;
         gameDuration = 30000;
         break;
       case 2:
         roadSpeed = 50;
         carSpeed = 6;
-        minCarSpacing = 450;
-        scoreInterval = 1500;
-        gameDuration = 60000;
+        scoreInterval = 1200;
+        gameDuration = 45000;
         break;
       case 3:
         roadSpeed = 40;
         carSpeed = 7;
-        minCarSpacing = 400;
-        scoreInterval = 2000;
-        gameDuration = 90000;
+        scoreInterval = 1400;
+        gameDuration = 60000;
         break;
       case 4:
         roadSpeed = 30;
         carSpeed = 8;
-        minCarSpacing = 350;
-        scoreInterval = 2500;
-        gameDuration = 120000;
+        scoreInterval = 1600;
+        gameDuration = 75000;
         break;
     }
 
