@@ -294,6 +294,8 @@ $(document).ready(function () {
     if (level < 4) {
       level++;
     }
+    
+    clearInterval(gameDurationLoop);
 
     gameRunning = true;
     resetGame();
