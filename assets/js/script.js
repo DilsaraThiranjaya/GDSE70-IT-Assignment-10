@@ -13,11 +13,20 @@ $(document).ready(function () {
   const otherCar1 = $("#car-2");
   const otherCar2 = $("#car-3");
 
+  let roadWidth;
+
+  if ($(window).width() > 1680) {
+    roadWidth = 700;
+  } else if ($(window).width() > 1440) {
+    roadWidth = 550;
+  } else {
+    roadWidth = 490;
+  }
+
   const gameWidth = $(window).width();
   const gameHeight = $(window).height();
-  const roadWidth = 490;
   const roadLeft = (gameWidth - roadWidth) / 2;
-  
+
   let level = 1;
   let unlockedLevels = 1;
   let score = 0;
@@ -294,7 +303,7 @@ $(document).ready(function () {
     if (level < 4) {
       level++;
     }
-    
+
     clearInterval(gameDurationLoop);
 
     gameRunning = true;
@@ -369,19 +378,19 @@ $(document).ready(function () {
   function initializeCarPositions() {
     userCar.css({
       left: gameWidth / 2 - userCar.width() / 2,
-      top: gameHeight - userCar.height() - 10
+      top: gameHeight - userCar.height() - 10,
     });
 
     // Position first car at the top
     otherCar1.css({
       left: roadLeft + Math.random() * (roadWidth - otherCar1.width()),
-      top: -otherCar1.height()
+      top: -otherCar1.height(),
     });
 
     // Position second car with minimum spacing
     otherCar2.css({
       left: roadLeft + Math.random() * (roadWidth - otherCar2.width()),
-      top: -otherCar2.height() - minCarSpacing
+      top: -otherCar2.height() - minCarSpacing,
     });
   }
 
@@ -469,7 +478,7 @@ $(document).ready(function () {
         break;
     }
   }
-  
+
   function playGame() {
     switch (level) {
       case 1:
@@ -536,10 +545,10 @@ $(document).ready(function () {
   function formatTime(seconds) {
     let minutes = Math.floor(seconds / 60);
     let secs = seconds % 60;
-    return `${String(minutes).padStart(
+    return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(
       2,
       "0"
-    )}:${String(secs).padStart(2, "0")}`;
+    )}`;
   }
 
   function resetGame() {
@@ -590,18 +599,24 @@ $(document).ready(function () {
   }
 
   // Road Movement  function moveRoad() {
-    function moveRoad() {
-      $(".road").each(function () {
-        let currentTop = parseFloat($(this).css("top"));
-        let newTop = currentTop + 5;
-        
-        if (newTop >= $(window).height() * 2) {
+  function moveRoad() {
+    $(".road").each(function () {
+      let currentTop = parseFloat($(this).css("top"));
+      let newTop = currentTop + 5;
+
+      if (newTop >= $(window).height() * 2) {
+        if ($(window).width() > 1680) {
+          newTop = -$(window).height() + 9;
+        } else if ($(window).width() > 1440) {
+          newTop = -$(window).height() + 8;
+        } else {
           newTop = -$(window).height() + 5;
         }
-        
-        $(this).css("top", `${newTop}px`);
-      });
-    }
+      }
+
+      $(this).css("top", `${newTop}px`);
+    });
+  }
 
   function showGameOverBoard() {
     $("#final-score").text(score); // Display the final score
@@ -656,7 +671,7 @@ $(document).ready(function () {
       $("#next-level-btn").removeClass("d-none");
     }
 
-    if(unlockedLevels > level) {
+    if (unlockedLevels > level) {
       $("#next-level-btn").removeClass("d-none");
     }
 
@@ -673,7 +688,6 @@ $(document).ready(function () {
   function moveUserCar() {
     if (gameRunning == false) return;
 
-    const roadWidth = 490; // Specify the road width
     const roadLeft = (gameWidth - roadWidth) / 2; // Calculate left position of the road
     const roadRight = roadLeft + roadWidth; // Calculate right position of the road
 
@@ -693,9 +707,7 @@ $(document).ready(function () {
     if (moveDown && currentTop < gameHeight - userCar.height()) {
       userCar.css("top", currentTop + userCarSpeed);
     }
-
   }
-
 
   function spawnRandomCars() {
     if (!gameRunning) return;
@@ -703,21 +715,21 @@ $(document).ready(function () {
     [otherCar1, otherCar2].forEach((car, index) => {
       let currentTop = parseInt(car.css("top"));
       let newTop = currentTop + carSpeed; // Use carSpeed for movement
-      
+
       // If car is off screen, reset position
       if (newTop > gameHeight) {
         let newLeft;
         let newPosition;
         let attempts = 0;
         const otherCar = index === 0 ? otherCar2 : otherCar1;
-        
+
         // Try to find a non-overlapping position
         do {
           newLeft = getRandomCarPosition();
-          newPosition = -car.height() - (Math.random() * minCarSpacing);
+          newPosition = -car.height() - Math.random() * minCarSpacing;
           car.css({
             left: newLeft,
-            top: newPosition
+            top: newPosition,
           });
           attempts++;
         } while (checkCollision(car, otherCar) && attempts < 10);
@@ -734,43 +746,42 @@ $(document).ready(function () {
     });
   }
 
-    // Function to move the car smoothly using requestAnimationFrame
-    function moveCarSmoothly(car) {
-      // Get the current top position of the car
-      const currentTop = parseFloat(car.css("top"));
-      const nextTop = currentTop + roadSpeed;
-  
-      // Check if the car is still on screen (below the viewport height)
-      if (nextTop < gameHeight) {
-        // Update the car's position smoothly
-        car.css("top", nextTop); // Update car's vertical position
-  
-        // Request the next frame to keep moving the car
-        requestAnimationFrame(() => moveCarSmoothly(car));
-      } else {
-        // If the car moves off-screen, reset its position for respawning
-        resetCarPosition(car);
-      }
-  }
-  
-    // Function to reset the car position when it moves off-screen
-    function resetCarPosition(car) {
-      // Reset car's position if it has moved off the screen
-      const roadWidth = 490;
-      const roadLeft = (gameWidth - roadWidth) / 2;
-  
-      const carWidth = car.width();
-      const newLeft = roadLeft + Math.random() * (roadWidth - carWidth);
-  
-      // Reset the car off-screen and start moving again
-      car.css({
-        left: newLeft,
-        top: -car.height(), // Reset car position off-screen
-      });
-  
-      // Start moving the car again smoothly
-      moveCarSmoothly(car);
+  // Function to move the car smoothly using requestAnimationFrame
+  function moveCarSmoothly(car) {
+    // Get the current top position of the car
+    const currentTop = parseFloat(car.css("top"));
+    const nextTop = currentTop + roadSpeed;
+
+    // Check if the car is still on screen (below the viewport height)
+    if (nextTop < gameHeight) {
+      // Update the car's position smoothly
+      car.css("top", nextTop); // Update car's vertical position
+
+      // Request the next frame to keep moving the car
+      requestAnimationFrame(() => moveCarSmoothly(car));
+    } else {
+      // If the car moves off-screen, reset its position for respawning
+      resetCarPosition(car);
     }
+  }
+
+  // Function to reset the car position when it moves off-screen
+  function resetCarPosition(car) {
+    // Reset car's position if it has moved off the screen
+    const roadLeft = (gameWidth - roadWidth) / 2;
+
+    const carWidth = car.width();
+    const newLeft = roadLeft + Math.random() * (roadWidth - carWidth);
+
+    // Reset the car off-screen and start moving again
+    car.css({
+      left: newLeft,
+      top: -car.height(), // Reset car position off-screen
+    });
+
+    // Start moving the car again smoothly
+    moveCarSmoothly(car);
+  }
 
   // Collision Detection
   function checkCollision(car1, car2) {
